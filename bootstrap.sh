@@ -2,8 +2,11 @@
 # We will exit on any non-zero exit code
 set -o errexit
 
+# Assumption is you are running from an Ubuntu host with the zfs modules 
+# modules installed alread. This can be a livecd as well.
+#
 # Commands ending it " # luks_commands" can be ignored if not using luks
-
+#
 # USAGE: ./bootstrap.sh
 # its expected you run it exactly as the usage. Things will break otherwise
 
