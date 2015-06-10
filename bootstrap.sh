@@ -2,6 +2,8 @@
 # We will exit on any non-zero exit code
 set -o errexit
 
+# Commands ending it " # luks_commands" can be ignored if not using luks
+
 # USAGE: ./bootstrap.sh
 # its expected you run it exactly as the usage. Things will break otherwise
 
@@ -79,6 +81,9 @@ echo "target=zfs02,source=UUID=1fb49f29-3a44-4885-990e-ac518c32fea0,keyscript=/s
 mkdir /etc/initramfs-tools/scripts/luks # luks_commands
 cp /lib/cryptsetup/scripts/decrypt_derived /etc/initramfs-tools/scripts/luks/get.zfs01.decrypt_devired # luks_commands
 sed -i 's|/bin/sh|/bin/sh\nCRYPT_DEVICE="zfs01"|;s|\$1|\$CRYPT_DEVICE|g' /etc/initramfs-tools/scripts/luks/get.zfs01.decrypt_devired # luks_commands
+
+# disable quiet to see additional startup information
+sed -i 's|quiet splash||' /etc/default/grub
 
 # regen the initramfs to include zfs, install grub, update the grub config
 update-initramfs -u -k all
