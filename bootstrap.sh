@@ -33,8 +33,8 @@ mount --make-rslave /mnt/dev
 ### WARNING WARNING WARNING ###
 # Formatting is happening
 parted $BOOT_DEV -s -- mklabel msdos mkpart pri 1 1G set 1 boot on
-wipefs -a $BOOT_DEV
-mkfs.ext4 $BOOT_DEV
+wipefs -a ${BOOT_DEV}1
+mkfs.ext4 ${BOOT_DEV}1
 mount ${BOOT_DEV}1 /mnt/boot
 ln -sf /dev/mapper/zfs01 /dev/zfs01 # luks_commands
 ln -sf /dev/mapper/zfs02 /dev/zfs02 # luks_commands
@@ -72,18 +72,12 @@ apt-get update
 apt-get install -y ubuntu-zfs zfs-initramfs grub2
 
 echo -e "zfs01 UUID=5e75afff-8b2f-49d1-9fa7-cd59de9d5a04 none luks,discard" > /etc/crypttab # luks_commands
-echo -e "zfs02 UUID=1fb49f29-3a44-4885-990e-ac518c32fea0 none luks,discard" >> /etc/crypttab # luks_commands
+echo -e "zfs02 UUID=1fb49f29-3a44-4885-990e-ac518c32fea0 zfs01 luks,discard,keyscript=/lib/cryptsetup/scripts/decrypt_derived" >> /etc/crypttab # luks_commands
 echo 'ENV{DM_NAME}=="zfs01", SYMLINK+="zfs01"' > /etc/udev/rules.d/99-zfs.rules # luks_commands
 echo 'ENV{DM_NAME}=="zfs02", SYMLINK+="zfs02"' >> /etc/udev/rules.d/99-zfs.rules # luks_commands
-echo "target=zfs01,source=UUID=5e75afff-8b2f-49d1-9fa7-cd59de9d5a04,key=none,rootdev,discard" > /etc/initramfs-tools/conf.d/cryptroot # luks_commands
-echo "target=zfs02,source=UUID=1fb49f29-3a44-4885-990e-ac518c32fea0,keyscript=/scripts/luks/get.zfs01.decrypt_derived" >> /etc/initramfs-tools/conf.d/cryptroot # luks_commands
 
-mkdir /etc/initramfs-tools/scripts/luks # luks_commands
-cp /lib/cryptsetup/scripts/decrypt_derived /etc/initramfs-tools/scripts/luks/get.zfs01.decrypt_devired # luks_commands
-sed -i 's|/bin/sh|/bin/sh\nCRYPT_DEVICE="zfs01"|;s|\$1|\$CRYPT_DEVICE|g' /etc/initramfs-tools/scripts/luks/get.zfs01.decrypt_devired # luks_commands
-
-# disable quiet to see additional startup information
-sed -i 's|quiet splash||' /etc/default/grub
+# disable quiet to see additional startup information, enable boot from zfs
+sed -i 's|quiet splash|boot=zfs|' /etc/default/grub
 
 # regen the initramfs to include zfs, install grub, update the grub config
 update-initramfs -u -k all
@@ -97,7 +91,7 @@ rm /usr/sbin/policy-rc.d
 useradd -m -s /bin/bash sam
 echo -e 'a\na' | passwd sam
 
-# Add a user to sudoers (dont require user to enter password to `sudo`)
+# Add a user to sudoers (dont require user to enter password to 'sudo')
 cat << EOF > /etc/sudoers.d/sam
 sam ALL=(ALL) NOPASSWD: ALL
 EOF
@@ -185,7 +179,7 @@ cp bootstrap.sh /mnt/root/bootstrap.sh
 # turn sync back on (set it to default of 'standard')
 zfs inherit sync rpool
 
-# exit here is you want to get into the chroot and do other things/install packages/passwd
+# exit here if you want to get into the chroot and do other things/install packages/passwd
 #exit
 
 # unmount system running systemd
