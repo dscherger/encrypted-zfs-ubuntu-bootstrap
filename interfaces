@@ -1,0 +1,27 @@
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet manual
+    bond-master bond0
+
+auto eth1
+iface eth1 inet manual
+    bond-master bond0
+
+auto bond0
+iface bond0 inet manual
+    slaves none
+    bond-primary eth0
+    bond-mode active-backup
+
+auto br10
+iface br10 inet static
+    address 192.168.31.11
+    netmask 255.255.255.0
+    gateway 192.168.31.251
+    dns 8.8.8.8
+    bridge-stp off
+    bridge-waitport 0
+    bridge-fd 0
+    bridge-ports bond0

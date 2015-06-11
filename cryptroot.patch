@@ -1,0 +1,15 @@
+--- a/cryptroot	2013-11-01 12:50:23.000000000 -0500
++++ b/cryptroot	2015-06-11 05:08:52.201981262 -0500
+@@ -27,10 +27,10 @@
+ 	while read device mount type options dump pass; do
+ 		if [ "$mount" = "/" ]; then
+ 			device=$(canonical_device "$device") || return 0
+-			echo "$device"
+-			return
++			echo "$device "
+ 		fi
+ 	done
++	echo
+ }
+ 
+ get_resume_devices() {
