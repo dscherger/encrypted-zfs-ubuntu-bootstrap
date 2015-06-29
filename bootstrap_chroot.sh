@@ -1,9 +1,12 @@
 #!/bin/bash -x
 set -o errexit
-set -o nounset
 
 # This script runs inside the chroot environment
 BOOT_DEV=$1
+
+if [[ $2 ]]; then
+    crypt=$2
+fi
 
 # apt wont ask you questions now, you are welcome
 export DEBIAN_FRONTEND=noninteractive
@@ -28,15 +31,21 @@ apt-get upgrade -y
 # vivid is 3.19, I recommend using it
 apt-get install -y linux-firmware linux-headers-generic-lts-vivid htop tmux \
                    linux-image-generic-lts-vivid intel-microcode bridge-utils \
-                   vim ifenslave sudo vlan openssh-server cryptsetup \
+                   vim ifenslave sudo vlan openssh-server \
                    software-properties-common
+
+if [[ "${!crypt[@]}" ]]; then
+    apt-get install -y cryptsetup
+fi
 
 # zfs me!
 add-apt-repository -y ppa:zfs-native/stable
 apt-get update
 apt-get install -y ubuntu-zfs zfs-initramfs grub2
 
-patch /usr/share/initramfs-tools/hooks/cryptroot < /cryptroot.patch
+if [[ "${!crypt[@]}" ]]; then
+    patch /usr/share/initramfs-tools/hooks/cryptroot < /cryptroot.patch
+fi
 
 # disable quiet to see additional startup information, enable boot from zfs
 sed -i 's|quiet splash|boot=zfs|' /etc/default/grub
