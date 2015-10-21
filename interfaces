@@ -9,6 +9,16 @@ auto eth1
 iface eth1 inet manual
     bond-master bond0
 
+iface eth2 inet manual
+    bond-master br-fast
+    up ip l s $IFACE up
+    down ip l s $IFACE down
+
+iface eth3 inet manual
+    bond-master br-fast
+    up ip l s $IFACE up
+    down ip l s $IFACE down
+
 auto bond0
 iface bond0 inet manual
     slaves none
@@ -16,12 +26,30 @@ iface bond0 inet manual
     bond-mode active-backup
 
 auto br10
-iface br10 inet static
-    address 192.168.31.11
-    netmask 255.255.255.0
-    gateway 192.168.31.251
-    dns 8.8.8.8
+iface br10 inet dhcp
     bridge-stp off
     bridge-waitport 0
     bridge-fd 0
     bridge-ports bond0
+
+#auto br10
+#iface br10 inet static
+#    address 192.168.31.11
+#    netmask 255.255.255.0
+#    gateway 192.168.31.251
+#    dns 8.8.8.8
+#    bridge-stp off
+#    bridge-waitport 0
+#    bridge-fd 0
+#    bridge-ports bond0
+
+iface br-fast inet manual
+    pre-up ip link set eth2 txqueuelen 10000 mtu 9216
+    pre-up ip link set eth3 txqueuelen 10000 mtu 9216
+    up ip l s $IFACE up
+    post-up ip route add 192.168.31.12/32 dev br-fast
+    pre-down ip route del 192.168.31.12/32 dev br-fast
+    down ip l s $IFACE down
+    bridge-stp on
+    bridge-waitport 10
+    bridge_ports eth2 eth3
