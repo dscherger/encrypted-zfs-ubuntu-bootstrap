@@ -22,7 +22,11 @@ ZFS_DEV2="/dev/sdb"
 
 parted ${ZFS_DEV1} -s -- mklabel msdos mkpart pri 1 1G mkpart pri 1G 20G
 parted ${ZFS_DEV2} -s -- mklabel msdos mkpart pri 1 1G mkpart pri 1G 20G
-mdadm create --metadata=0.90 --raid-devices=2 --level=1 /dev/md0 ${ZFS_DEV1}1 ${ZFS_DEV2}2
+wipefs -a ${ZFS_DEV1}1
+wipefs -a ${ZFS_DEV1}2
+wipefs -a ${ZFS_DEV2}1
+wipefs -a ${ZFS_DEV2}2
+mdadm --create --metadata=0.90 --raid-devices=2 --level=1 /dev/md0 ${ZFS_DEV1}1 ${ZFS_DEV2}1
 
 if [[ "${!crypt[@]}" ]]; then
     CRYPT_DEV1=${ZFS_DEV1}2
@@ -33,12 +37,16 @@ fi
 
 if [[ "${!crypt[@]}" ]]; then
     # setuping up cryptdevices
-    cryptsetup luksFormat -c aes-xts-plain64 -s 512 -h sha512 ${CRYPT_DEV1} # luks_commands
-    cryptsetup luksFormat -c aes-xts-plain64 -s 512 -h sha512 ${CRYPT_DEV2} # luks_commands
-    cryptsetup luksOpen ${CRYPT_DEV1} zfs01 # luks_commands
-    cryptsetup luksOpen ${CRYPT_DEV2} zfs02 # luks_commands
-    /lib/cryptsetup/scripts/decrypt_derived zfs01 > /run/key # luks_commands
-    cryptsetup luksAddKey ${CRYPT_DEV2} /run/key # luks_commands
+    read -s crypt_password
+    set +o xtrace
+    echo -e "${crypt_password}" | cryptsetup luksFormat -c aes-xts-plain64 -s 512 -h sha512 ${CRYPT_DEV1} # luks_commands
+    echo -e "${crypt_password}" | cryptsetup luksFormat -c aes-xts-plain64 -s 512 -h sha512 ${CRYPT_DEV2} # luks_commands
+    echo -e "${crypt_password}" | cryptsetup luksOpen ${CRYPT_DEV1} zfs01 # luks_commands
+    echo -e "${crypt_password}" | cryptsetup luksOpen ${CRYPT_DEV2} zfs02 # luks_commands
+    echo -e "${crypt_password}" | /lib/cryptsetup/scripts/decrypt_derived zfs01 > /run/key # luks_commands
+    echo -e "${crypt_password}" | cryptsetup luksAddKey ${CRYPT_DEV2} /run/key # luks_commands
+    unset crypt_password
+    set -o xtrace
     rm /run/key # luks_commands
 fi
 
