@@ -11,11 +11,8 @@ fi
 # apt wont ask you questions now, you are welcome
 export DEBIAN_FRONTEND=noninteractive
 
-# gen locale to prevent wierd unicode crap
-locale-gen en_US.UTF-8
-
 # Set hostname
-echo server01 > /etc/hostname
+echo laptop > /etc/hostname
 
 # stop any services from starting (we remove this later)
 cat << EOF > /usr/sbin/policy-rc.d
@@ -29,9 +26,9 @@ apt-get upgrade -y
 # adjust any packages you want to install here, software-properties-common and
 # the kernel/kernel headers are required (but they dont have to be vivid)
 # vivid is 3.19, I recommend using it
-apt-get install -y linux-firmware linux-headers-generic-lts-vivid htop tmux \
+apt-get install -y linux-firmware linux-headers-generic-lts-vivid htop parted \
                    linux-image-generic-lts-vivid intel-microcode bridge-utils \
-                   vim ifenslave sudo vlan openssh-server \
+                   vim git ifenslave sudo vlan openssh-server tmux python-dev \
                    software-properties-common
 
 if [[ "${!crypt[@]}" ]]; then
@@ -43,16 +40,12 @@ add-apt-repository -y ppa:zfs-native/stable
 apt-get update
 apt-get install -y ubuntu-zfs zfs-initramfs grub2
 
-if [[ "${!crypt[@]}" ]]; then
-    patch /usr/share/initramfs-tools/hooks/cryptroot < /cryptroot.patch
-fi
-
 # disable quiet to see additional startup information, enable boot from zfs
 sed -i 's|quiet splash|boot=zfs|' /etc/default/grub
 
 # regen the initramfs to include zfs, install grub, update the grub config
-update-initramfs -u -k all
-grub-install $BOOT_DEV
+update-initramfs -c -k all
+grub-install ${BOOT_DEV}
 update-grub
 
 # Add a user and set the password to 'a'
