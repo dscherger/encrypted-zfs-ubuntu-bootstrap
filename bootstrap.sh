@@ -84,7 +84,7 @@ if [[ "${!crypt[@]}" ]]; then
 fi
 
 # execute script in chroot
-chroot /mnt bootstrap_chroot.sh ${BOOT_DEV} ${crypt}
+chroot /mnt /bootstrap_chroot.sh ${BOOT_DEV} ${crypt}
 
 # cp in zpool cache file
 cp /tmp/zpool.cache /mnt/etc/zfs/
@@ -93,4 +93,4 @@ cp bootstrap.sh /mnt/bootstrap.sh
 # turn sync back on (set it to default of 'standard')
 zfs inherit sync rpool
 
-cleanup.sh ${crypt}
+./cleanup.sh ${crypt}
