@@ -36,7 +36,6 @@ if [[ "${!crypt[@]}" ]]; then
     # setuping up cryptdevices
     cryptsetup luksFormat -c aes-xts-plain64 -s 512 -h sha512 ${CRYPT_DEV1} # luks_commands
     cryptsetup luksOpen ${CRYPT_DEV1} zfs01 # luks_commands
-    rm /run/key # luks_commands
 fi
 
 # creating the zpool: -o is zpool properties, -O is zfs properties
@@ -50,7 +49,7 @@ zfs create -o mountpoint=/home rpool/HOME
 zfs create -o mountpoint=/root rpool/HOME/root
 zpool set bootfs=rpool/ROOT/ubuntu rpool
 
-debootstrap trusty /mnt/
+debootstrap vivid /mnt/ http://192.168.31.11:3142/ubuntu
 
 mount -t proc none /mnt/proc
 mount --rbind /sys /mnt/sys

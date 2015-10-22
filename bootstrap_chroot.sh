@@ -23,6 +23,8 @@ exit 101
 EOF
 chmod +x /usr/sbin/policy-rc.d
 
+echo "Acquire::http::Proxy \"http://192.168.31.11:3142\";" > /etc/apt/apt.conf
+
 apt-get update
 apt-get upgrade -y
 # adjust any packages you want to install here, software-properties-common and
@@ -31,7 +33,7 @@ apt-get upgrade -y
 apt-get install -y linux-firmware linux-headers-generic htop parted man \
                    linux-image-generic intel-microcode bridge-utils mlocate \
                    vim git ifenslave sudo vlan openssh-server tmux python-dev \
-                   software-properties-common
+                   software-properties-common wpasupplicant
 
 if [[ "${!crypt[@]}" ]]; then
     apt-get install -y cryptsetup
