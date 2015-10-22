@@ -10,9 +10,11 @@ fi
 
 # apt wont ask you questions now, you are welcome
 export DEBIAN_FRONTEND=noninteractive
+export HOME=/root
+export LC_ALL=C
 
 # Set hostname
-echo laptop > /etc/hostname
+echo servosity-laptop01 > /etc/hostname
 
 # stop any services from starting (we remove this later)
 cat << EOF > /usr/sbin/policy-rc.d
