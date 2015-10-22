@@ -28,8 +28,8 @@ apt-get upgrade -y
 # adjust any packages you want to install here, software-properties-common and
 # the kernel/kernel headers are required (but they dont have to be vivid)
 # vivid is 3.19, I recommend using it
-apt-get install -y linux-firmware linux-headers-generic-lts-vivid htop parted \
-                   linux-image-generic-lts-vivid intel-microcode bridge-utils \
+apt-get install -y linux-firmware linux-headers-generic htop parted man \
+                   linux-image-generic intel-microcode bridge-utils mlocate \
                    vim git ifenslave sudo vlan openssh-server tmux python-dev \
                    software-properties-common
 

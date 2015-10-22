@@ -1,22 +1,15 @@
 auto lo
 iface lo inet loopback
 
-auto eth0
 iface eth0 inet manual
 
-auto wlan0
-iface wlan0 inet manual
+iface wlan0 inet dhcp
+    pre-up wpa_supplicant -B -i $IFACE -Dnl80211 -p/run/wpa_supplicant-$IFACE -c/etc/wpa_supplicant.conf
+    post-down kill $(cat /run/wpa_supplicant-$IFACE)
 
-auto brlan
-iface brlan inet dhcp
-    bridge-stp off
-    bridge-waitport 0
-    bridge-fd 0
-    bridge-ports eth0
-
-auto brwlan
-iface brwlan inet dhcp
-    bridge-stp off
-    bridge-waitport 0
-    bridge-fd 0
-    bridge-ports wlan
+#auto brlan
+#iface brlan inet dhcp
+#    bridge-stp off
+#    bridge-waitport 0
+#    bridge-fd 0
+#    bridge-ports eth0
