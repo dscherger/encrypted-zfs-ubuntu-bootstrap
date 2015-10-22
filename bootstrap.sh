@@ -65,8 +65,8 @@ debootstrap --arch=amd64 trusty /mnt/
 
 # Formatting is happening
 parted ${BOOT_DEV} -s -- mklabel msdos mkpart pri 1 1G set 1 boot on
-wipefs -a ${BOOT_DEV}1
-mkfs.ext4 ${BOOT_DEV}1
+wipefs -a ${BOOT_DEV}p1
+mkfs.ext4 ${BOOT_DEV}p1
 
 if [[ "${!crypt[@]}" ]]; then
     ln -sf ${ZFS_DEV1} /dev/zfs01 # luks_commands

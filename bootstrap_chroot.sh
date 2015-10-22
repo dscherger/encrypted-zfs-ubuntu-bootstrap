@@ -11,7 +11,7 @@ fi
 mount none -t proc /proc
 mount none -t sysfs /sys
 mount none -t devpts /dev/pts
-mount ${BOOT_DEV}1 /mnt/boot
+mount ${BOOT_DEV}p1 /mnt/boot
 
 # Setup env
 export HOME=/root
@@ -28,8 +28,6 @@ EOF
 chmod +x /usr/sbin/policy-rc.d
 
 apt-get update
-apt-get install -y dialog dbus
-dbus-uuidgen > /var/lib/dbus/machine-id
 apt-get upgrade -y
 # adjust any packages you want to install here, software-properties-common and
 # the kernel/kernel headers are required (but they dont have to be vivid)
@@ -64,6 +62,5 @@ sed -i 's/.*history-search-forward.*/"\\e[6~": history-search-forward/' /etc/inp
 
 # cleanup
 rm /usr/sbin/policy-rc.d
-rm /var/lib/dbus/machine-id
 rm -rf /tmp/*
 umount /proc /sys /dev/pts /boot
