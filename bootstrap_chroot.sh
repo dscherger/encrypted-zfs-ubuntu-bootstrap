@@ -8,17 +8,13 @@ if [[ $2 ]]; then
     crypt=$2
 fi
 
-mount none -t proc /proc
-mount none -t sysfs /sys
-mount none -t devpts /dev/pts
-mount ${BOOT_DEV}p1 /mnt/boot
-
-# Setup env
+# apt wont ask you questions now, you are welcome
+export DEBIAN_FRONTEND=noninteractive
 export HOME=/root
 export LC_ALL=C
 
-# apt wont ask you questions now, you are welcome
-export DEBIAN_FRONTEND=noninteractive
+# Set hostname
+echo server02 > /etc/hostname
 
 # stop any services from starting (we remove this later)
 cat << EOF > /usr/sbin/policy-rc.d
@@ -27,27 +23,34 @@ exit 101
 EOF
 chmod +x /usr/sbin/policy-rc.d
 
+echo "Acquire::http::Proxy \"http://192.168.31.11:3142\";" > /etc/apt/apt.conf
+
 apt-get update
 apt-get upgrade -y
 # adjust any packages you want to install here, software-properties-common and
 # the kernel/kernel headers are required (but they dont have to be vivid)
 # vivid is 3.19, I recommend using it
-apt-get install -y linux-firmware linux-headers-generic-lts-vivid htop parted \
-                   linux-image-generic-lts-vivid intel-microcode bridge-utils \
-                   vim ifenslave sudo vlan openssh-server git tmux python-dev \
-                   software-properties-common
+apt-get install -y linux-firmware linux-headers-generic htop parted man \
+                   linux-image-generic intel-microcode bridge-utils mlocate \
+                   vim git ifenslave sudo vlan openssh-server tmux python-dev \
+                   software-properties-common mdadm
 
 if [[ "${!crypt[@]}" ]]; then
-    apt-get install -y cryptsetup mdadm
+    apt-get install -y cryptsetup
 fi
 
 # zfs me!
 add-apt-repository -y ppa:zfs-native/stable
 apt-get update
-apt-get upgrade -y
-apt-get install -y ubuntu-zfs zfs-initramfs
-apt-get clean
+apt-get install -y ubuntu-zfs zfs-initramfs grub2
+
+# disable quiet to see additional startup information, enable boot from zfs
+sed -i 's|quiet splash|boot=zfs|' /etc/default/grub
+
+# regen the initramfs to include zfs, install grub, update the grub config
 update-initramfs -c -k all
+grub-install ${BOOT_DEV}
+update-grub
 
 # Add a user and set the password to 'a'
 useradd -m -s /bin/bash sam
@@ -62,5 +65,3 @@ sed -i 's/.*history-search-forward.*/"\\e[6~": history-search-forward/' /etc/inp
 
 # cleanup
 rm /usr/sbin/policy-rc.d
-rm -rf /tmp/*
-umount /proc /sys /dev/pts /boot

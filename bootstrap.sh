@@ -20,13 +20,14 @@ BOOT_DEV="/dev/md0"
 ZFS_DEV1="/dev/sda"
 ZFS_DEV2="/dev/sdb"
 
-parted ${ZFS_DEV1} -s -- mklabel msdos mkpart pri 1 1G mkpart pri 1G 20G
-parted ${ZFS_DEV2} -s -- mklabel msdos mkpart pri 1 1G mkpart pri 1G 20G
-wipefs -a ${ZFS_DEV1}1
-wipefs -a ${ZFS_DEV1}2
-wipefs -a ${ZFS_DEV2}1
-wipefs -a ${ZFS_DEV2}2
-mdadm --create --metadata=0.90 --raid-devices=2 --level=1 /dev/md0 ${ZFS_DEV1}1 ${ZFS_DEV2}1
+#parted ${ZFS_DEV1} -s -- mklabel msdos mkpart pri 1 1G mkpart pri 1G 20G
+#parted ${ZFS_DEV2} -s -- mklabel msdos mkpart pri 1 1G mkpart pri 1G 20G
+#mdadm --create --metadata=0.90 --raid-devices=2 --level=1 /dev/md0 ${ZFS_DEV1}1 ${ZFS_DEV2}1
+# Formatting is happening
+parted ${BOOT_DEV} -s -- mklabel msdos mkpart pri 1 1G set 1 boot on
+wipefs -a ${BOOT_DEV}p1
+mkfs.ext4 ${BOOT_DEV}p1
+
 
 if [[ "${!crypt[@]}" ]]; then
     CRYPT_DEV1=${ZFS_DEV1}2
@@ -61,12 +62,15 @@ zfs create -o mountpoint=/home rpool/HOME
 zfs create -o mountpoint=/root rpool/HOME/root
 zpool set bootfs=rpool/ROOT/ubuntu rpool
 
-debootstrap --arch=amd64 trusty /mnt/
+debootstrap trusty /mnt/ http://192.168.31.11:3142/ubuntu
 
-# Formatting is happening
-parted ${BOOT_DEV} -s -- mklabel msdos mkpart pri 1 1G set 1 boot on
-wipefs -a ${BOOT_DEV}p1
-mkfs.ext4 ${BOOT_DEV}p1
+mount -t proc none /mnt/proc
+mount --rbind /sys /mnt/sys
+mount --make-rslave /mnt/sys
+mount --rbind /dev /mnt/dev
+mount --make-rslave /mnt/dev
+mount ${BOOT_DEV}p1 /mnt/boot
+
 
 if [[ "${!crypt[@]}" ]]; then
     ln -sf ${ZFS_DEV1} /dev/zfs01 # luks_commands
@@ -88,7 +92,7 @@ cp sources.list /mnt/etc/apt/sources.list
 cp cryptroot.patch /mnt/cryptroot.patch # luks_commands
 
 # UUID=<BOOT_DEV>, this is the only fstab entry needed (unless you use swap)
-echo "UUID="$(blkid ${BOOT_DEV}1 | awk -F\" '{print $2}')" /boot ext4 rw,data=ordered 0 2" > /mnt/etc/fstab
+echo "UUID="$(blkid ${BOOT_DEV}p1 | awk -F\" '{print $2}')" /boot ext4 rw,data=ordered 0 2" > /mnt/etc/fstab
 
 if [[ "${!crypt[@]}" ]]; then
     echo "${ZFS_DEV1} / zfs defaults 0 0" >> /mnt/etc/fstab # luks_commands
