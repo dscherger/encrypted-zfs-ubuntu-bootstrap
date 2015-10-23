@@ -17,16 +17,16 @@ crypt=yes
 # This is really destructive, so whatever disk you have here will get
 # repartitioned and formated. You've been warned
 BOOT_DEV="/dev/md0"
-ZFS_DEV1="/dev/sdb"
-ZFS_DEV2="/dev/sdc"
+ZFS_RAW_DEV1="/dev/sda"
+ZFS_RAW_DEV2="/dev/sdb"
 
 function ignore {
     mdadm --stop /dev/md0
-    wipefs -a ${ZFS_DEV1}1
-    wipefs -a ${ZFS_DEV2}1
-    parted ${ZFS_DEV1} -s -- mklabel msdos mkpart pri 1 1G mkpart pri 1G 40G
-    parted ${ZFS_DEV2} -s -- mklabel msdos mkpart pri 1 1G mkpart pri 1G 40G
-    mdadm --create --metadata=0.90 --raid-devices=2 --level=1 /dev/md0 ${ZFS_DEV1}1 ${ZFS_DEV2}1
+    wipefs -a ${ZFS_RAW_DEV1}1
+    wipefs -a ${ZFS_RAW_DEV2}1
+    parted ${ZFS_RAW_DEV1} -s -- mklabel msdos mkpart pri 1 1G mkpart pri 1G 40G
+    parted ${ZFS_RAW_DEV2} -s -- mklabel msdos mkpart pri 1 1G mkpart pri 1G 40G
+    mdadm --create --metadata=0.90 --raid-devices=2 --level=1 /dev/md0 ${ZFS_RAW_DEV1}1 ${ZFS_RAW_DEV2}1
 }
 
 ignore || :
@@ -37,10 +37,13 @@ wipefs -a ${BOOT_DEV}p1
 mkfs.ext4 ${BOOT_DEV}p1
 
 if [[ "${!crypt[@]}" ]]; then
-    CRYPT_DEV1=${ZFS_DEV1}2
-    CRYPT_DEV2=${ZFS_DEV2}2
+    CRYPT_DEV1=${ZFS_RAW_DEV1}2
+    CRYPT_DEV2=${ZFS_RAW_DEV2}2
     ZFS_DEV1="/dev/mapper/zfs01"
     ZFS_DEV2="/dev/mapper/zfs02"
+else
+    ZFS_DEV1=${ZFS_RAW_DEV1}
+    ZFS_DEV2=${ZFS_RAW_DEV2}
 fi
 
 if [[ "${!crypt[@]}" ]]; then
@@ -111,7 +114,7 @@ if [[ "${!crypt[@]}" ]]; then
 fi
 
 # execute script in chroot
-chroot /mnt /bootstrap_chroot.sh ${ZFS_DEV1},${ZFS_DEV2} ${crypt}
+chroot /mnt /bootstrap_chroot.sh ${ZFS_RAW_DEV1},${ZFS_RAW_DEV2} ${crypt}
 
 # cp in zpool cache file
 cp /tmp/zpool.cache /mnt/etc/zfs/
