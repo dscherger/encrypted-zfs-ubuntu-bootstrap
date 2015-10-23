@@ -30,8 +30,8 @@ apt-get upgrade -y
 # adjust any packages you want to install here, software-properties-common and
 # the kernel/kernel headers are required (but they dont have to be vivid)
 # vivid is 3.19, I recommend using it
-apt-get install -y linux-firmware linux-headers-generic htop parted man \
-                   linux-image-generic intel-microcode bridge-utils mlocate \
+apt-get install -y linux-firmware linux-headers-generic-lts-vivid htop parted man \
+                   linux-image-generic-lts-vivid intel-microcode bridge-utils mlocate \
                    vim git ifenslave sudo vlan openssh-server tmux python-dev \
                    software-properties-common mdadm
 
@@ -49,7 +49,7 @@ sed -i 's|quiet splash|boot=zfs|' /etc/default/grub
 
 # regen the initramfs to include zfs, install grub, update the grub config
 update-initramfs -c -k all
-grub-install ${BOOT_DEV}
+grub-install ${BOOT_DEV} || :
 update-grub
 
 # Add a user and set the password to 'a'

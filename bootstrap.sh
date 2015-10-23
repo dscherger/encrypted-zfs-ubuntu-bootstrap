@@ -17,17 +17,24 @@ crypt=yes
 # This is really destructive, so whatever disk you have here will get
 # repartitioned and formated. You've been warned
 BOOT_DEV="/dev/md0"
-ZFS_DEV1="/dev/sda"
-ZFS_DEV2="/dev/sdb"
+ZFS_DEV1="/dev/sdb"
+ZFS_DEV2="/dev/sdc"
 
-#parted ${ZFS_DEV1} -s -- mklabel msdos mkpart pri 1 1G mkpart pri 1G 20G
-#parted ${ZFS_DEV2} -s -- mklabel msdos mkpart pri 1 1G mkpart pri 1G 20G
-#mdadm --create --metadata=0.90 --raid-devices=2 --level=1 /dev/md0 ${ZFS_DEV1}1 ${ZFS_DEV2}1
+function ignore {
+    mdadm --stop /dev/md0
+    wipefs -a ${ZFS_DEV1}1
+    wipefs -a ${ZFS_DEV2}1
+    parted ${ZFS_DEV1} -s -- mklabel msdos mkpart pri 1 1G mkpart pri 1G 40G
+    parted ${ZFS_DEV2} -s -- mklabel msdos mkpart pri 1 1G mkpart pri 1G 40G
+    mdadm --create --metadata=0.90 --raid-devices=2 --level=1 /dev/md0 ${ZFS_DEV1}1 ${ZFS_DEV2}1
+}
+
+ignore || :
+
 # Formatting is happening
 parted ${BOOT_DEV} -s -- mklabel msdos mkpart pri 1 1G set 1 boot on
 wipefs -a ${BOOT_DEV}p1
 mkfs.ext4 ${BOOT_DEV}p1
-
 
 if [[ "${!crypt[@]}" ]]; then
     CRYPT_DEV1=${ZFS_DEV1}2
