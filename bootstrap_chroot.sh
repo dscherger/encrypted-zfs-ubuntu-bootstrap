@@ -45,8 +45,9 @@ add-apt-repository -y ppa:zfs-native/stable
 apt-get update
 apt-get install -y ubuntu-zfs zfs-initramfs grub2
 
-# disable quiet to see additional startup information, enable boot from zfs
-sed -i 's|quiet splash|boot=zfs|' /etc/default/grub
+# Update grub
+source /etc/default/grub
+sed -i "s|^GRUB_CMDLINE_LINUX_DEFAULT=.*|GRUB_CMDLINE_LINUX_DEFAULT=\"${GRUB_CMDLINE_LINUX_DEFAULT} boot=zfs\"|" /etc/default/grub
 
 # regen the initramfs to include zfs, install grub, update the grub config
 update-initramfs -c -k all
