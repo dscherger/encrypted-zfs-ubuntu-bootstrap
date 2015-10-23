@@ -37,6 +37,7 @@ apt-get install -y linux-firmware linux-headers-generic-lts-vivid htop parted ma
 
 if [[ "${!crypt[@]}" ]]; then
     apt-get install -y cryptsetup
+    patch /usr/share/initramfs-tools/hooks/cryptroot < /cryptroot.patch
 fi
 
 # zfs me!
