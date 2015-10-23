@@ -111,7 +111,7 @@ if [[ "${!crypt[@]}" ]]; then
 fi
 
 # execute script in chroot
-chroot /mnt /bootstrap_chroot.sh ${BOOT_DEV} ${crypt}
+chroot /mnt /bootstrap_chroot.sh ${ZFS_DEV1},${ZFS_DEV2} ${crypt}
 
 # cp in zpool cache file
 cp /tmp/zpool.cache /mnt/etc/zfs/
@@ -123,7 +123,4 @@ zfs inherit sync rpool
 # exit here if you want to get into the chroot and do other things/install packages/passwd
 #exit
 
-# unmount system running systemd
-#umount /mnt/{sys{/fs{/cgroup{/systemd,/cpuset,/cpu\,cpuacct,/devices,/freezer,/net_cls\,net_prio,/blkio,/perf_event,},/pstore,/fuse/connections},/kernel/{security,debug},},dev{/shm,/pts,/hugepages,/mqueue,},proc,boot}
-
-./cleanup.sh $crypt
+./cleanup.sh ${crypt}

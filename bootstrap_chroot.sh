@@ -49,7 +49,9 @@ sed -i 's|quiet splash|boot=zfs|' /etc/default/grub
 
 # regen the initramfs to include zfs, install grub, update the grub config
 update-initramfs -c -k all
-grub-install ${BOOT_DEV} || :
+for DEV in $(echo ${BOOT_DEV} | tr ',' ' '); do
+    grub-install ${DEV}
+done
 update-grub
 
 # Add a user and set the password to 'a'
